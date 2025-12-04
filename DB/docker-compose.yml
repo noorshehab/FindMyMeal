@@ -3,19 +3,22 @@ version: '3.8'  # Standard version for modern Docker environments
 services:
   # Service 1: The Database
   db:
-    image: postgres:15-alpine  
+    image: postgres:15-alpine  # 'Alpine' is a lightweight Linux version (Good for fast CI/CD)
     container_name: findmymeal_db
     restart: always
     environment:
+      # These variables configure the DB on startup.
+      # In a real job, never commit passwords to Git. Use an .env file.
+      # For this learning project, it's acceptable, but know the risk.
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: password123
       POSTGRES_DB: findmymeal_dev
     ports:
-      - "5432:5432" 
+      - "5432:5432"  # Maps the container's port 5432 to your laptop's port 5432
     volumes:
-      - postgres_data:/var/lib/postgresql/data  
+      - postgres_data:/var/lib/postgresql/data  # Persists data even if container stops
 
-# Service 2: Adminer (Optional but highly recommended)
+  # Service 2: Adminer (Optional but highly recommended)
   # A lightweight web interface to see your DB tables.
   # Much faster than installing pgAdmin locally.
   adminer:
