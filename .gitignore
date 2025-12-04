@@ -1,0 +1,61 @@
+# -----------------------------------------------------------------------------
+# 1. Dependency and Environment Files
+# -----------------------------------------------------------------------------
+
+# Ignore the virtual environment folder
+# Common names include 'venv', '.venv', or 'env'
+/venv/
+/env/
+.venv/
+.env/
+
+# Ignore the environment configuration file
+.env
+
+# -----------------------------------------------------------------------------
+# 2. Byte-compiled / Optimized files
+# -----------------------------------------------------------------------------
+
+# Python bytecode compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# -----------------------------------------------------------------------------
+# 3. Operating System Files
+# -----------------------------------------------------------------------------
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# -----------------------------------------------------------------------------
+# 4. Logs, Artifacts, and Cache
+# -----------------------------------------------------------------------------
+
+# Logs
+*.log
+
+# Build artifacts (if you package your project)
+/dist/
+/build/
+*.egg
+*.whl
+
+# Testing/Cache (e.g., pytest, mypy, tox)
+.pytest_cache/
+.mypy_cache/
+.tox/
+postgres_data/
+
+# -----------------------------------------------------------------------------
+# 5. IDE/Editor Specific Files
+# -----------------------------------------------------------------------------
+
+# Visual Studio Code
+.vscode/
+
+# IntelliJ / PyCharm
+.idea/
