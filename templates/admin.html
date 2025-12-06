@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-warning text-dark">
+                <strong>Google/Apify Import</strong>
+            </div>
+            <div class="card-body">
+                <form action="/admin/search" method="post">
+                    <div class="mb-3">
+                        <label>Location</label>
+                        <input type="text" name="location" id="location-box" class="form-control" placeholder="e.g. Cairo" value="Cairo">
+                    </div>
+                    <div class="mb-3">
+                        <label>Cuisine / Keyword</label>
+                        <input type="text" name="query" id="search-box" class="form-control" placeholder="e.g. Pizza">
+                    </div>
+                    <button type="submit" id="import-btn" class="btn btn-dark w-100">Scrape & Import</button>
+                </form>
+
+                {% if message %}
+                <div class="alert alert-info mt-3" id="status-msg">{{ message }}</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <strong>System Inventory</strong>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-striped mb-0" id="results-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Cuisine</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in restaurants %}
+                        <tr class="restaurant-row">
+                            <td>{{ r.id }}</td>
+                            <td>{{ r.name }}</td>
+                            <td>{{ r.cuisine }}</td>
+                            <td>
+                                {% if r.active %}
+                                <span class="badge bg-success">Active</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
