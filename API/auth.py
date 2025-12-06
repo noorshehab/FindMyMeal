@@ -1,7 +1,7 @@
 from datetime import timedelta,datetime
 from jose import jwt
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status,Request
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
 from sqlmodel import Session
@@ -26,7 +26,17 @@ def create_access_token(data: dict):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-def get_current_user(token: str = Depends(oauth2_scheme), session: Session = Depends(get_session)):
+def get_current_user(request: Request,
+        token: str = Depends(oauth2_scheme),
+        session: Session = Depends(get_session)):
+    
+    if not token:
+        cookie_auth = request.cookies.get("access_token")
+        if cookie_auth:
+             token = cookie_auth.replace("Bearer ", "")
+    
+    if not token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
    
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,

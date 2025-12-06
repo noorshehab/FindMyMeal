@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h2>Results for "{{ query }}"</h2>
+        <a href="/dashboard" class="btn btn-outline-secondary btn-sm">&larr; Back to Dashboard</a>
+    </div>
+</div>
+
+<div class="row">
+    {% for r in restaurants %}
+    <div class="col-md-4 d-flex align-items-stretch">
+        <div class="card mb-4 shadow-sm w-100">
+            <div class="card-header bg-transparent">{{ r.cuisine }}</div>
+            
+            <div class="card-body">
+                <h5 class="card-title">{{ r.name }}</h5>
+                <p class="card-text text-muted">{{ r.address }}</p>
+            </div>
+            
+            <div class="card-footer bg-transparent border-top-0">
+                <form action="/favorites/add" method="post">
+                    <input type="hidden" name="restaurant_id" value="{{ r.id }}">
+                    
+                    <button type="submit" id="fav-btn-{{ r.id }}" class="btn btn-outline-danger w-100">
+                        &#9829; Add to Favorites
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-md-12 text-center">
+        <p class="lead text-muted">No restaurants found for this cuisine.</p>
+        <p>Try searching for "General" or ask your Admin to import more.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

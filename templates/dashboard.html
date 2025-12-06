@@ -1,21 +1,19 @@
 {% extends "base.html" %}
 
 {% block content %}
+
+<div class="p-4 p-md-5 mb-4 rounded text-bg-dark">
+    <div class="col-md-6 px-0">
+        <h1 class="display-4 fst-italic">Hungry?</h1>
+        <p class="lead my-3">Find the best places to eat in your city.</p>
+        
+        <form action="/search" method="get" class="d-flex gap-2">
+            <input type="text" name="cuisine" class="form-control" placeholder="Cuisine (e.g. Pizza, Asian)...">
+            <button type="submit" class="btn btn-primary">Find</button>
+        </form>
+    </div>
+</div>
+
 <h2>My Favorites</h2>
 <hr>
-<div class="row">
-    {% for f in favorites %}
-    <div class="col-md-4">
-        <div class="card mb-3 shadow-sm">
-            <div class="card-body">
-                <h5 class="card-title">{{ f.name }}</h5>
-                <h6 class="card-subtitle mb-2 text-muted">{{ f.cuisine }}</h6>
-                <p class="card-text">{{ f.address }}</p>
-            </div>
-        </div>
-    </div>
-    {% else %}
-    <p>You have no favorites yet.</p>
-    {% endfor %}
-</div>
 {% endblock %}
