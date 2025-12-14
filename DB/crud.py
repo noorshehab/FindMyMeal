@@ -7,10 +7,9 @@ parent_dir = os.path.dirname(current_dir)
 
 sys.path.append(parent_dir)
 
-from sqlmodel import SQLModel, Session,select
+from sqlmodel import SQLModel, Session,select,or_
 import uuid
 from DB.models import*
-
 
 
 def get_user(user_name:str,session:Session)-> User:
@@ -20,6 +19,7 @@ def get_user(user_name:str,session:Session)-> User:
     return user
 
 def add_user(user_name:str,password,session:Session)-> User :
+    print("Debug Begin create user")
     uid=str(uuid.uuid4())[:8]
     user=User(id=uid,username=user_name,hashed_password=password)
     session.add(user)
@@ -44,7 +44,7 @@ def get_favorites(userid:str,session:Session):
 
 def add_restaurant(name:str,address:str,cuisine:str,place_id:str,session:Session)-> Restaurant:
     rid=str(uuid.uuid4())[:8]
-    restaurant=Restaurant(id=rid,name=name,address=address,cuisine=cuisine,place_id=place_id)
+    restaurant=Restaurant(id=rid,name=name,address=address,cuisine=cuisine,place_id=place_id,active=True)
     session.add(restaurant)
     session.commit()
     session.refresh(restaurant)
@@ -52,10 +52,11 @@ def add_restaurant(name:str,address:str,cuisine:str,place_id:str,session:Session
     return restaurant
 
 
-def update_restaurant(name:str,status:bool,session:Session):
-    statement= select(Restaurant).where(Restaurant.name==name)
+def update_restaurant(id:str,session:Session):
+    statement= select(Restaurant).where(Restaurant.id==id)
     result=session.exec(statement)
     restaurant=result.first()
+    status=not restaurant.active
     if restaurant:
         restaurant.active=status
         session.add(restaurant)
@@ -68,8 +69,29 @@ def update_restaurant(name:str,status:bool,session:Session):
 
 
 def get_restaurant_by_cuisine(cuisine:str,session:Session)-> list[Restaurant]:
-    statement= select(Restaurant).where(Restaurant.cuisine==cuisine,Restaurant.active==True)
+    statement= select(Restaurant).where(or_(Restaurant.cuisine.ilike(f"%{cuisine}%"),
+                                            Restaurant.name.ilike(f"%{cuisine}%")),
+                                        Restaurant.active==True)
     result=session.exec(statement)
     restaurants=result.all()
     return restaurants
 
+def get_restaurants(session)->list[Restaurant]:
+    statement=select(Restaurant)
+    result=session.exec(statement)
+    restaurants=result.all()
+    return restaurants
+
+def get_restaurant(restaurant_id,session)->Restaurant:
+    statement=select(Restaurant).where(Restaurant.id==restaurant_id)
+    return session.exec(statement).first()
+
+def remove_favorite(restaurant_id,user_id,session):
+    statement=select(UserFavorite).where(UserFavorite.restaurantid==restaurant_id,UserFavorite.userid==user_id)
+    result=session.exec(statement)
+    favorite=result.first()
+    if favorite:
+        session.delete(favorite)
+        session.commit()
+        return True
+    return False

@@ -48,12 +48,15 @@
                             <td>{{ r.id }}</td>
                             <td>{{ r.name }}</td>
                             <td>{{ r.cuisine }}</td>
-                            <td>
+                            <td id="status-badge-{{ r.id }}">
                                 {% if r.active %}
                                 <span class="badge bg-success">Active</span>
                                 {% else %}
                                 <span class="badge bg-secondary">Inactive</span>
                                 {% endif %}
+                                <button type="button" id="toggle-status-{{ r.id }}" class="btn btn-sm btn-outline-primary ms-2 toggle-status-btn" onclick="location.href='/admin/update/{{ r.id }}'">
+                                    Toggle Status
+                                </button>
                             </td>
                         </tr>
                         {% endfor %}

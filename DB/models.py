@@ -22,24 +22,3 @@ class Restaurant(SQLModel,table=True):
     active: Optional[bool] = Field(default=True)
     favorited_by: List["User"] = Relationship(back_populates="favorites", link_model=UserFavorite)
 
-
- #-----dtos-----------   
-class UserSignup(SQLModel):
-    username: str
-    password: str
-
-class UserReturn(SQLModel):
-    id: int
-    username: str
-
-class RestaurantCreate(SQLModel):
-    place_id: str
-    name: str
-    address: str
-    cuisine: str
-
-class RestaurantRead(SQLModel):
-    id: int
-    name: str
-    cuisine: str
-    address: str

@@ -7,11 +7,11 @@ parent_dir = os.path.dirname(current_dir)
 
 sys.path.append(parent_dir)
 
-from fastapi import FastAPI, Depends, HTTPException, Form,Request,status,Response
+from fastapi import FastAPI, Depends, Form,Request,status,Response,HTTPException
 from fastapi.templating import Jinja2Templates
-from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlmodel import Session
+from sqlalchemy.exc import IntegrityError
 from typing import List
 
 from DB.models import*
@@ -22,16 +22,22 @@ from API.auth import create_access_token,get_current_user,get_current_admin
 from API.places_service import ApifyService
 
 app =FastAPI()
-templates=Jinja2Templates(directory="templates")
+templates=Jinja2Templates(directory="TEMPLATES")
+
+#landing page
 @app.get("/", response_class=HTMLResponse)
 def landing_page(request: Request):
     return templates.TemplateResponse("landing.html", {"request": request})
 
+#signup and log in
 @app.get("/auth/login", response_class=HTMLResponse)
 def login_page(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 
-#user endpoints
+@app.get("/auth/register",response_class=HTMLResponse)
+def register_page(request:Request):
+    return templates.TemplateResponse("register.html",{"request":request})
+
 @app.post("/auth/register")
 def register(request: Request,
     username: str = Form(...),
@@ -46,8 +52,7 @@ def register(request: Request,
         new_user=add_user(username,hashed,session)
         return RedirectResponse(url="/auth/login", status_code=status.HTTP_303_SEE_OTHER)
     
-
-@app.post("/auth/login",response_model=UserReturn)
+@app.post("/auth/login")
 def login(request: Request,
     response: Response, 
     username: str = Form(...),
@@ -64,7 +69,6 @@ def login(request: Request,
     response = RedirectResponse(url="/dashboard", status_code=status.HTTP_303_SEE_OTHER)
     response.set_cookie(key="access_token", value=f"Bearer {access_token}", httponly=True)
     return response
-    #page with user details of current user
 
 @app.get("/auth/logout")
 def logout(response: Response):
@@ -73,17 +77,38 @@ def logout(response: Response):
     return response
 
 
-@app.post("/favorites/add")
+@app.post("/favorites/add",response_class=HTMLResponse)
 def add_favorite_ui(
     request: Request,
     restaurant_id: str = Form(...),
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
-    
-    add_favorite(current_user.id, restaurant_id,session)
+    user_favorites=get_favorites(current_user.id,session)
+    try:
+        add_favorite(current_user.id, restaurant_id,session)
+    except IntegrityError:
+       session.rollback()
+       return templates.TemplateResponse("dashboard.html",
+                                      {
+                                          "request": request,
+                                            "favorites": user_favorites,
+                                            "user": current_user,
+                                            "error_message":"Favorite already Exists"  
+                                      })
     
     return RedirectResponse(url="/dashboard", status_code=status.HTTP_303_SEE_OTHER)
+
+@app.get("/favorites/remove/{restaurant_id}",response_class=HTMLResponse)
+def remove_fav(
+    restaurant_id: str,
+    request: Request,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    remove_favorite(restaurant_id=restaurant_id,user_id=current_user.id,session=session)
+    return RedirectResponse(url="/dashboard", status_code=status.HTTP_303_SEE_OTHER)
+    
 
 @app.get("/dashboard", response_class=HTMLResponse)
 def dashboard(
@@ -92,13 +117,16 @@ def dashboard(
     current_user: User = Depends(get_current_user) 
 ):
     
+    if(current_user.role=='admin'):
+        return RedirectResponse(url="/admin",status_code=status.HTTP_303_SEE_OTHER)
+    
     favorites = get_favorites( current_user.id,session)
     return templates.TemplateResponse("dashboard.html", {
         "request": request, 
         "user": current_user, 
         "favorites": favorites
     })
-    #favorites list of current user
+    
 
 #restaurant endpoints
 
@@ -120,20 +148,35 @@ def search_page(
     })
 
 #change restaurant status active->inactive OR inactive->active
-@app.post("/update",response_model=RestaurantRead)
-def update(restaurant:str,
-           status:bool,
+@app.get("/admin/update/{restaurant_id}",response_class=HTMLResponse)
+def update(restaurant_id:str,
            session:Session=Depends(get_session),
            admin_user: User = Depends(get_current_admin)):
-    return update_restaurant(restaurant,status,session)
-#details of updated restaurant
+     update_restaurant(restaurant_id,session)
+     return RedirectResponse(url="/admin", status_code=status.HTTP_303_SEE_OTHER)
+    
+
+@app.get("/admin",response_class=HTMLResponse)
+def adminpage(
+    request: Request,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_admin) 
+):
+    restaurants=get_restaurants(session)
+    return templates.TemplateResponse("admin.html",{
+        "request":request,
+        "restaurants":restaurants,
+        "user":current_user}
+    )
+    
 
 @app.post("/admin/search")
 async def search_restaurants(
     request: Request,
     query: str = Form(...), 
     location: str = Form(...), 
-    session: Session = Depends(get_session)
+    session: Session = Depends(get_session),
+    current_admin: User =Depends(get_current_admin)
 ):
   
     service = ApifyService()
@@ -153,21 +196,22 @@ async def search_restaurants(
 
             try:
                 add_restaurant(
-                    session, 
                     name=c_name, 
                     address=c_address, 
                     cuisine=c_cuisine, 
-                    place_id=c_place_id
+                    place_id=c_place_id,
+                    session=session
                 )
                 added_count += 1
             except Exception as e:
                 print(f"Skipping duplicate: {c_name}")
                 session.rollback()
 
-    restaurants = session.exec(select(Restaurant)).all()
+    restaurants = get_restaurants(session)
     return templates.TemplateResponse(
         "admin.html", 
         {
+            "user":current_admin,
             "request": request, 
             "restaurants": restaurants, 
             "message": f"Successfully scraped {added_count} restaurants!"

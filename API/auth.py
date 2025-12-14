@@ -2,7 +2,7 @@ from datetime import timedelta,datetime
 from jose import jwt
 
 from fastapi import Depends, HTTPException, status,Request
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+
 
 from sqlmodel import Session
 
@@ -18,22 +18,18 @@ SECRET_KEY=os.getenv('SECRET_KEY')
 ALGORITHM=os.getenv('ALGORITHM')
 ACCESS_TOKEN_EXPIRE_MINUTES=os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES')
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
+
 def create_access_token(data: dict):
     to_encode = data.copy()
-    expire = datetime.today() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    expire = datetime.today() + timedelta(minutes=float(ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
 def get_current_user(request: Request,
-        token: str = Depends(oauth2_scheme),
         session: Session = Depends(get_session)):
-    
-    if not token:
-        cookie_auth = request.cookies.get("access_token")
-        if cookie_auth:
-             token = cookie_auth.replace("Bearer ", "")
+    cookie_auth = request.cookies.get("access_token")
+    token = cookie_auth.replace("Bearer ", "")
     
     if not token:
         raise HTTPException(status_code=401, detail="Not authenticated")
@@ -51,7 +47,7 @@ def get_current_user(request: Request,
     except jwt.JWTError:
         raise credentials_exception
     
-    user = get_user(session, username) 
+    user = get_user(username,session) 
     if user is None:
         raise credentials_exception
     return user

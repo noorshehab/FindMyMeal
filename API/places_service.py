@@ -4,12 +4,13 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
-APIFY_KEY=os.getenv("APIFY_KEY")
+APIFY_KEY=os.getenv("APIFY_TOKEN")
 
 
 
 class ApifyService:
     def __init__(self):
+       print(f"Debug Apify key= {APIFY_KEY}")
        self.client=ApifyClientAsync(APIFY_KEY)
     async def get_restaurants(self,location:str,search_string:str)->List[Dict[str, Any]]:
         query={
