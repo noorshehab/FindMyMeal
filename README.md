@@ -31,7 +31,7 @@ A full-stack web application that aggregates restaurant data using web scraping 
 ### Quick Start (Docker)
 ```bash
 # 1. Clone the repo
-git clone [https://github.com/](https://github.com/)[your-username]/findmymeal.git
+git clone [https://github.com/](https://github.com/)[noorshehab]/FindMyMeal.git
 
 # 2. Build and Run
 docker-compose up --build
