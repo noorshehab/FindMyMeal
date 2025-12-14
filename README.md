@@ -7,7 +7,7 @@ A full-stack web application that aggregates restaurant data using web scraping 
 ##  Demo
 [link]
 
-## 🏗 Architecture
+## Architecture
 * **Backend:** FastAPI (Python)
 * **Database:** PostgreSQL (SQLModel)
 * **Frontend:** Jinja2 Templates + Bootstrap
