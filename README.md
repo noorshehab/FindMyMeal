@@ -5,7 +5,7 @@
 A full-stack web application that aggregates restaurant data using web scraping and allows users to search and favorite locations. This project demonstrates a complete **End-to-End (E2E) QA Automation Architecture**.
 
 ##  Demo
-[link]
+[Loom Demo](https://www.loom.com/share/57fe1e386f7043b58d9efa80cc6b12f6)
 
 ## Architecture
 * **Backend:** FastAPI (Python)
